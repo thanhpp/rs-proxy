@@ -1,0 +1,9 @@
+proxies:
+  - name: proxy_1
+    url: abc.xyz
+groups:
+  - prefix: /bsc
+    proxies:
+      - proxy_1
+    urls:
+      - xyz.abc
