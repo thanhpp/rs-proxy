@@ -18,8 +18,8 @@ pub struct GroupConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    proxies: Option<Vec<ProxyConfig>>,
-    groups: Option<Vec<GroupConfig>>,
+    pub proxies: Option<Vec<ProxyConfig>>,
+    pub groups: Option<Vec<GroupConfig>>,
 }
 
 impl Config {
@@ -29,6 +29,26 @@ impl Config {
 
         Ok(cfg)
     }
+}
+
+pub fn validate_groups(
+    gr_cfgs: &Vec<GroupConfig>,
+    clients_map: &HashMap<String, Client>,
+) -> Result<(), Box<dyn Error>> {
+    for gr in gr_cfgs.iter() {
+        let proxy_names = match &gr.proxy_names {
+            None => return Err(format!("group contains no proxy name").into()),
+            Some(x) => x,
+        };
+
+        for name in proxy_names.iter() {
+            if !clients_map.contains_key(name) {
+                return Err(format!("client {} not exist", name).into());
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -71,7 +91,7 @@ impl ProxyClient {
 }
 
 pub fn build_proxy_client_hash_map(
-    proxies_config: Vec<ProxyConfig>,
+    proxies_config: &Vec<ProxyConfig>,
 ) -> Result<HashMap<String, Client>, Box<dyn Error>> {
     if proxies_config.is_empty() {
         return Err("empty proxies config".into());
